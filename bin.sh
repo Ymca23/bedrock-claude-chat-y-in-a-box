@@ -36,7 +36,7 @@ esac
 done
 
 # Default parameters
-ALLOW_SELF_REGISTER="true"
+ALLOW_SELF_REGISTER="false"
 IPV4_RANGES=""
 IPV6_RANGES=""
 DISABLE_IPV6="false"
