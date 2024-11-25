@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional
 
 from app.routes.schemas.base import BaseSchema
-from app.routes.schemas.bot_guardrails import (
-    BedrockGuardrailsInput,
-    BedrockGuardrailsOutput,
-)
 from app.routes.schemas.bot_kb import (
     BedrockKnowledgeBaseInput,
     BedrockKnowledgeBaseOutput,
+)
+from app.routes.schemas.bot_guardrails import (
+    BedrockGuardrailsInput,
+    BedrockGuardrailsOutput,
 )
 from pydantic import Field, root_validator, validator
 
@@ -28,12 +28,22 @@ type_sync_status = Literal[
 ]
 
 
+class EmbeddingParams(BaseSchema):
+    chunk_size: int
+    chunk_overlap: int
+    enable_partition_pdf: bool
+
+
 class GenerationParams(BaseSchema):
     max_tokens: int
     top_k: int
     top_p: float
     temperature: float
     stop_sequences: list[str]
+
+
+class SearchParams(BaseSchema):
+    max_results: int
 
 
 class AgentTool(BaseSchema):
@@ -95,7 +105,9 @@ class BotInput(BaseSchema):
     title: str
     instruction: str
     description: str | None
+    embedding_params: EmbeddingParams | None
     generation_params: GenerationParams | None
+    search_params: SearchParams | None
     agent: Optional[AgentInput] = None
     knowledge: Knowledge | None
     display_retrieved_chunks: bool
@@ -108,7 +120,9 @@ class BotModifyInput(BaseSchema):
     title: str
     instruction: str
     description: str | None
+    embedding_params: EmbeddingParams | None
     generation_params: GenerationParams | None
+    search_params: SearchParams | None
     agent: Optional[AgentInput] = None
     knowledge: KnowledgeDiffInput | None
     display_retrieved_chunks: bool
@@ -116,51 +130,13 @@ class BotModifyInput(BaseSchema):
     bedrock_knowledge_base: BedrockKnowledgeBaseInput | None = None
     bedrock_guardrails: BedrockGuardrailsInput | None = None
 
-    def _has_update_files(self) -> bool:
+    def has_update_files(self) -> bool:
         return self.knowledge is not None and (
             len(self.knowledge.added_filenames) > 0
             or len(self.knowledge.deleted_filenames) > 0
         )
 
-    def _has_update_source_urls(self, current_bot_model: BotModel) -> bool:
-        return self.knowledge is not None and (
-            len(self.knowledge.source_urls) > 0
-            and (
-                set(self.knowledge.source_urls)
-                != set(current_bot_model.knowledge.source_urls)
-            )
-        )
-
-    def _is_crawling_scope_modified(self, current_bot_model: BotModel) -> bool:
-        if (
-            self.bedrock_knowledge_base is None
-            or current_bot_model.bedrock_knowledge_base is None
-        ):
-            return False
-        return (
-            self.bedrock_knowledge_base.web_crawling_scope
-            != current_bot_model.bedrock_knowledge_base.web_crawling_scope
-        )
-
-    def _is_crawling_filters_modified(self, current_bot_model: BotModel) -> bool:
-        if (
-            self.bedrock_knowledge_base is None
-            or current_bot_model.bedrock_knowledge_base is None
-            or self.bedrock_knowledge_base.web_crawling_filters is None
-            or current_bot_model.bedrock_knowledge_base.web_crawling_filters is None
-        ):
-            return False
-        return set(
-            self.bedrock_knowledge_base.web_crawling_filters.exclude_patterns
-        ) != set(
-            current_bot_model.bedrock_knowledge_base.web_crawling_filters.exclude_patterns
-        ) or set(
-            self.bedrock_knowledge_base.web_crawling_filters.include_patterns
-        ) != set(
-            current_bot_model.bedrock_knowledge_base.web_crawling_filters.include_patterns
-        )
-
-    def is_guardrails_update_required(self, current_bot_model: BotModel) -> bool:
+    def guardrails_update_required(self, current_bot_model: BotModel) -> bool:
         # Check if self.bedrock_guardrails is None
         if not self.bedrock_guardrails:
             return False
@@ -189,16 +165,7 @@ class BotModifyInput(BaseSchema):
         return False
 
     def is_embedding_required(self, current_bot_model: BotModel) -> bool:
-        if self._has_update_files():
-            return True
-
-        if self._has_update_source_urls(current_bot_model):
-            return True
-
-        if self._is_crawling_scope_modified(current_bot_model):
-            return True
-
-        if self._is_crawling_filters_modified(current_bot_model):
+        if self.has_update_files():
             return True
 
         if self.knowledge is not None and current_bot_model.has_knowledge():
@@ -214,6 +181,22 @@ class BotModifyInput(BaseSchema):
             else:
                 return True
 
+        if (
+            self.embedding_params is not None
+            and current_bot_model.embedding_params is not None
+        ):
+            if (
+                self.embedding_params.chunk_size
+                == current_bot_model.embedding_params.chunk_size
+                and self.embedding_params.chunk_overlap
+                == current_bot_model.embedding_params.chunk_overlap
+                and self.embedding_params.enable_partition_pdf
+                == current_bot_model.embedding_params.enable_partition_pdf
+            ):
+                pass
+            else:
+                return True
+
         return False
 
 
@@ -222,7 +205,9 @@ class BotModifyOutput(BaseSchema):
     title: str
     instruction: str
     description: str
+    embedding_params: EmbeddingParams
     generation_params: GenerationParams
+    search_params: SearchParams
     agent: Agent
     knowledge: Knowledge
     conversation_quick_starters: list[ConversationQuickStarter]
@@ -241,7 +226,9 @@ class BotOutput(BaseSchema):
     is_pinned: bool
     # Whether the bot is owned by the user
     owned: bool
+    embedding_params: EmbeddingParams
     generation_params: GenerationParams
+    search_params: SearchParams
     agent: Agent
     knowledge: Knowledge
     sync_status: type_sync_status
@@ -266,6 +253,7 @@ class BotMetaOutput(BaseSchema):
     # This can be `False` if the bot is not owned by the user and original bot is removed.
     available: bool
     sync_status: type_sync_status
+    has_bedrock_knowledge_base: bool
 
 
 class BotSummaryOutput(BaseSchema):
@@ -281,6 +269,10 @@ class BotSummaryOutput(BaseSchema):
     sync_status: type_sync_status
     has_knowledge: bool
     conversation_quick_starters: list[ConversationQuickStarter]
+    owned_and_has_bedrock_knowledge_base: bool = Field(
+        ...,
+        description="Whether the bot has Bedrock KnowledgeBase attributes. Note that if bot alias, always false.",
+    )
 
 
 class BotSwitchVisibilityInput(BaseSchema):

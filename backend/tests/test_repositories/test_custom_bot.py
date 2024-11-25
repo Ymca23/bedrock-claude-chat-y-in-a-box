@@ -3,7 +3,7 @@ import unittest
 
 sys.path.insert(0, ".")
 
-
+from app.config import DEFAULT_EMBEDDING_CONFIG
 from app.repositories.custom_bot import (
     delete_alias_by_id,
     delete_bot_by_id,
@@ -26,14 +26,15 @@ from app.repositories.models.custom_bot import (
     AgentToolModel,
     BotAliasModel,
     ConversationQuickStarterModel,
+    EmbeddingParamsModel,
     GenerationParamsModel,
     KnowledgeModel,
+    SearchParamsModel,
 )
 from app.repositories.models.custom_bot_guardrails import BedrockGuardrailsModel
 from app.repositories.models.custom_bot_kb import (
     AnalyzerParamsModel,
     BedrockKnowledgeBaseModel,
-    FixedSizeParamsModel,
     OpenSearchParamsModel,
 )
 from app.repositories.models.custom_bot_kb import (
@@ -72,13 +73,9 @@ class TestCustomBotRepository(unittest.TestCase):
                     max_results=20,
                     search_type="hybrid",
                 ),
-                chunking_configuration=FixedSizeParamsModel(
-                    chunking_strategy="fixed_size",
-                    max_tokens=2000,
-                    overlap_percentage=0,
-                ),
-                parsing_model="anthropic.claude-3-sonnet-v1",
-                web_crawling_scope="DEFAULT",
+                chunking_strategy="default",
+                max_tokens=2000,
+                overlap_percentage=0,
             ),
             bedrock_guardrails=BedrockGuardrailsModel(
                 is_guardrail_enabled=True,
@@ -104,7 +101,18 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.create_time, 1627984879.9)
         self.assertEqual(bot.last_used_time, 1627984879.9)
         self.assertEqual(bot.is_pinned, False)
+        self.assertEqual(
+            bot.embedding_params.chunk_size, DEFAULT_EMBEDDING_CONFIG["chunk_size"]
+        )
+        self.assertEqual(
+            bot.embedding_params.chunk_overlap,
+            DEFAULT_EMBEDDING_CONFIG["chunk_overlap"],
+        )
 
+        self.assertEqual(
+            bot.embedding_params.enable_partition_pdf,
+            DEFAULT_EMBEDDING_CONFIG["enable_partition_pdf"],
+        )
         self.assertEqual(bot.generation_params.max_tokens, 2000)
         self.assertEqual(bot.generation_params.top_k, 250)
         self.assertEqual(bot.generation_params.top_p, 0.999)
@@ -123,13 +131,9 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.conversation_quick_starters[0].title, "QS title")
         self.assertEqual(bot.conversation_quick_starters[0].example, "QS example")
         self.assertEqual(bot.bedrock_knowledge_base.embeddings_model, "titan_v2")
-        self.assertEqual(
-            bot.bedrock_knowledge_base.chunking_configuration.max_tokens, 2000
-        )
-        self.assertEqual(
-            bot.bedrock_knowledge_base.chunking_configuration.overlap_percentage, 0
-        )
-
+        self.assertEqual(bot.bedrock_knowledge_base.chunking_strategy, "default")
+        self.assertEqual(bot.bedrock_knowledge_base.max_tokens, 2000)
+        self.assertEqual(bot.bedrock_knowledge_base.overlap_percentage, 0)
         self.assertEqual(
             bot.bedrock_knowledge_base.open_search.analyzer.character_filters,
             ["icu_normalizer"],
@@ -221,9 +225,9 @@ class TestCustomBotRepository(unittest.TestCase):
                     max_results=20,
                     search_type="hybrid",
                 ),
-                chunking_configuration=FixedSizeParamsModel(
-                    chunking_strategy="fixed_size",
-                ),
+                chunking_strategy="default",
+                max_tokens=2000,
+                overlap_percentage=0,
             ),
         )
         store_bot("user1", bot)
@@ -242,12 +246,18 @@ class TestCustomBotRepository(unittest.TestCase):
             title="Updated Title",
             description="Updated Description",
             instruction="Updated Instruction",
+            embedding_params=EmbeddingParamsModel(
+                chunk_size=500, chunk_overlap=100, enable_partition_pdf=False
+            ),
             generation_params=GenerationParamsModel(
                 max_tokens=2500,
                 top_k=250,
                 top_p=0.99,
                 temperature=0.2,
                 stop_sequences=["Human: ", "Assistant: "],
+            ),
+            search_params=SearchParamsModel(
+                max_results=20,
             ),
             agent=AgentModel(
                 tools=[
@@ -281,11 +291,9 @@ class TestCustomBotRepository(unittest.TestCase):
                     max_results=20,
                     search_type="hybrid",
                 ),
-                chunking_configuration=FixedSizeParamsModel(
-                    chunking_strategy="fixed_size",
-                    max_tokens=2500,
-                    overlap_percentage=20,
-                ),
+                chunking_strategy="default",
+                max_tokens=2000,
+                overlap_percentage=0,
             ),
             bedrock_guardrails=BedrockGuardrailsModel(
                 is_guardrail_enabled=True,
@@ -305,6 +313,10 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.title, "Updated Title")
         self.assertEqual(bot.description, "Updated Description")
         self.assertEqual(bot.instruction, "Updated Instruction")
+        self.assertEqual(bot.embedding_params.chunk_size, 500)
+        self.assertEqual(bot.embedding_params.chunk_overlap, 100)
+
+        self.assertEqual(bot.embedding_params.enable_partition_pdf, False)
 
         self.assertEqual(bot.generation_params.max_tokens, 2500)
         self.assertEqual(bot.generation_params.top_k, 250)
@@ -325,12 +337,9 @@ class TestCustomBotRepository(unittest.TestCase):
         self.assertEqual(bot.conversation_quick_starters[0].example, "QS example")
 
         self.assertEqual(bot.bedrock_knowledge_base.embeddings_model, "titan_v2")
-        self.assertEqual(
-            bot.bedrock_knowledge_base.chunking_configuration.max_tokens, 2500
-        )
-        self.assertEqual(
-            bot.bedrock_knowledge_base.chunking_configuration.overlap_percentage, 20
-        )
+        self.assertEqual(bot.bedrock_knowledge_base.chunking_strategy, "default")
+        self.assertEqual(bot.bedrock_knowledge_base.max_tokens, 2000)
+        self.assertEqual(bot.bedrock_knowledge_base.overlap_percentage, 0)
         self.assertEqual(
             bot.bedrock_knowledge_base.open_search.analyzer.character_filters,
             ["icu_normalizer"],
@@ -492,12 +501,20 @@ class TestUpdateBotVisibility(unittest.TestCase):
             title="Updated Title",
             description="",
             instruction="",
+            embedding_params=EmbeddingParamsModel(
+                chunk_size=DEFAULT_EMBEDDING_CONFIG["chunk_size"],
+                chunk_overlap=DEFAULT_EMBEDDING_CONFIG["chunk_overlap"],
+                enable_partition_pdf=DEFAULT_EMBEDDING_CONFIG["enable_partition_pdf"],
+            ),
             generation_params=GenerationParamsModel(
                 max_tokens=2000,
                 top_k=250,
                 top_p=0.999,
                 temperature=0.6,
                 stop_sequences=["Human: ", "Assistant: "],
+            ),
+            search_params=SearchParamsModel(
+                max_results=20,
             ),
             agent=AgentModel(tools=[]),
             knowledge=KnowledgeModel(

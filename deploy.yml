@@ -22,7 +22,7 @@ Parameters:
     Default: "us-east-1"
   Version:
     Type: String
-    Default: "v2"
+    Default: "v1"
 
 Resources:
   ProjectRole:

@@ -38,7 +38,6 @@ from app.routes.schemas.conversation import (
     FeedbackOutput,
     MessageOutput,
     RelatedDocumentsOutput,
-    type_model_name,
 )
 from app.usecases.bot import fetch_bot, modify_bot_last_used_time
 from app.utils import get_current_time, is_running_on_lambda
@@ -288,7 +287,7 @@ def chat(user_id: str, chat_input: ChatInput) -> ChatOutput:
     else:
         message_map = conversation.message_map
         search_results = []
-        if bot and bot.has_knowledge() and is_running_on_lambda():
+        if bot and is_running_on_lambda():
             # NOTE: `is_running_on_lambda`is a workaround for local testing due to no postgres mock.
             # Fetch most related documents from vector store
             # NOTE: Currently embedding not support multi-modal. For now, use the last content.
@@ -444,7 +443,17 @@ def chat(user_id: str, chat_input: ChatInput) -> ChatOutput:
 def propose_conversation_title(
     user_id: str,
     conversation_id: str,
-    model: type_model_name = "claude-v3-haiku",
+    model: Literal[
+        "claude-instant-v1",
+        "claude-v2",
+        "claude-v3-opus",
+        "claude-v3-sonnet",
+        "claude-v3.5-sonnet",
+        "claude-v3-haiku",
+        "mistral-7b-instruct",
+        "mixtral-8x7b-instruct",
+        "mistral-large",
+    ] = "claude-v3-haiku",
 ) -> str:
     PROMPT = """Reading the conversation above, what is the appropriate title for the conversation? When answering the title, please follow the rules below:
 <rules>

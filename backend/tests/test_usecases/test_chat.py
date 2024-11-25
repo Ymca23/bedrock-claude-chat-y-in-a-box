@@ -8,6 +8,7 @@ import unittest
 from pprint import pprint
 
 import boto3
+from app.bedrock import get_model_id
 from app.config import DEFAULT_GENERATION_CONFIG
 from app.repositories.conversation import (
     delete_conversation_by_id,
@@ -282,7 +283,8 @@ class TestAttachmentChat(unittest.TestCase):
 
     def test_chat(self):
         file_name, body = get_aws_overview()
-
+        body = base64.b64encode(body).decode("utf-8")
+        file_name = "test.md"
         chat_input = ChatInput(
             conversation_id="test_conversation_id",
             message=MessageInput(

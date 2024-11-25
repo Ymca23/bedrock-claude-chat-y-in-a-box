@@ -20,12 +20,15 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as path from "path";
 import { IBucket } from "aws-cdk-lib/aws-s3";
+import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import { UsageAnalysis } from "./usage-analysis";
 import { excludeDockerImage } from "../constants/docker";
 
 export interface ApiProps {
+  readonly vpc: ec2.IVpc;
   readonly database: ITable;
+  readonly dbSecrets: ISecret;
   readonly corsAllowOrigins?: string[];
   readonly auth: Auth;
   readonly bedrockRegion: string;
@@ -56,11 +59,6 @@ export class Api extends Construct {
     const handlerRole = new iam.Role(this, "HandlerRole", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
     });
-    handlerRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(
-        "service-role/AWSLambdaBasicExecutionRole"
-      )
-    );
     handlerRole.addToPolicy(
       // Assume the table access role for row-level access control.
       new iam.PolicyStatement({
@@ -73,6 +71,11 @@ export class Api extends Construct {
         actions: ["bedrock:*"],
         resources: ["*"],
       })
+    );
+    handlerRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        "service-role/AWSLambdaVPCAccessExecutionRole"
+      )
     );
     handlerRole.addToPolicy(
       new iam.PolicyStatement({
@@ -177,9 +180,13 @@ export class Api extends Construct {
         {
           platform: Platform.LINUX_AMD64,
           file: "Dockerfile",
-          exclude: [...excludeDockerImage],
+          exclude: [
+            ...excludeDockerImage
+          ]
         }
       ),
+      vpc: props.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       memorySize: 1024,
       timeout: Duration.minutes(15),
       environment: {
@@ -191,6 +198,7 @@ export class Api extends Construct {
         REGION: Stack.of(this).region,
         BEDROCK_REGION: props.bedrockRegion,
         TABLE_ACCESS_ROLE_ARN: tableAccessRole.roleArn,
+        DB_SECRETS_ARN: props.dbSecrets.secretArn,
         DOCUMENT_BUCKET: props.documentBucket.bucketName,
         LARGE_MESSAGE_BUCKET: props.largeMessageBucket.bucketName,
         PUBLISH_API_CODEBUILD_PROJECT_NAME: props.apiPublishProject.projectName,
@@ -206,6 +214,7 @@ export class Api extends Construct {
       },
       role: handlerRole,
     });
+    props.dbSecrets.grantRead(handler);
 
     const api = new HttpApi(this, "Default", {
       corsPreflight: {

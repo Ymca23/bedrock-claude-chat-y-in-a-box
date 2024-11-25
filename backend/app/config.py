@@ -36,6 +36,20 @@ DEFAULT_MISTRAL_GENERATION_CONFIG: GenerationParams = {
     "stop_sequences": ["[INST]", "[/INST]"],
 }
 
+# Configure embedding parameter.
+DEFAULT_EMBEDDING_CONFIG: EmbeddingConfig = {
+    # DO NOT change `model_id` (currently other models are not supported)
+    "model_id": "cohere.embed-multilingual-v3",
+    # NOTE: consider that cohere allows up to 2048 tokens per request
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "enable_partition_pdf": False,
+}
+
+# Configure search parameter to fetch relevant documents from vector store.
+DEFAULT_SEARCH_CONFIG = {
+    "max_results": 20,
+}
 
 # Used for price estimation.
 # NOTE: The following is based on 2024-03-07
@@ -51,10 +65,8 @@ BEDROCK_PRICING = {
             "output": 0.00240,
         },
         "claude-v3-haiku": {"input": 0.00025, "output": 0.00125},
-        "claude-v3.5-haiku": {"input": 0.001, "output": 0.005},
         "claude-v3-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet": {"input": 0.00300, "output": 0.01500},
-        "claude-v3.5-sonnet-v2": {"input": 0.00300, "output": 0.01500},
         "mistral-7b-instruct": {"input": 0.00015, "output": 0.0002},
         "mixtral-8x7b-instruct": {"input": 0.00045, "output": 0.0007},
         "mistral-large": {"input": 0.008, "output": 0.024},
@@ -94,10 +106,8 @@ BEDROCK_PRICING = {
             "output": 0.00240,
         },
         "claude-v3-haiku": {"input": 0.00025, "output": 0.00125},
-        "claude-v3.5-haiku": {"input": 0.001, "output": 0.005},
         "claude-v3-sonnet": {"input": 0.00300, "output": 0.01500},
         "claude-v3.5-sonnet": {"input": 0.00300, "output": 0.01500},
-        "claude-v3.5-sonnet-v2": {"input": 0.00300, "output": 0.01500},
         "claude-v3-opus": {"input": 0.01500, "output": 0.07500},
         "mistral-7b-instruct": {"input": 0.00015, "output": 0.0002},
         "mixtral-8x7b-instruct": {"input": 0.00045, "output": 0.0007},

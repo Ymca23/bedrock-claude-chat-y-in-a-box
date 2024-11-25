@@ -6,53 +6,14 @@ const translation = {
       },
     },
     app: {
-      name: 'Bedrock Claude Chat',
-      nameWithoutClaude: 'Bedrock Chat',
+      name: 'Y IN A BOX',
+      nameWithoutClaude: 'Y IN A BOX',
       inputMessage: 'Send a message',
       starredBots: 'Starred Bots',
       recentlyUsedBots: 'Recently Used Bots',
       conversationHistory: 'History',
       chatWaitingSymbol: '▍',
       adminConsoles: 'Admin Only',
-    },
-    model: {
-      haiku3: {
-        label: 'Claude 3 (Haiku)',
-        description:
-          'Previous version optimized for speed and compactness, providing near-instant responsiveness.',
-      },
-      sonnet3: {
-        label: 'Claude 3 (Sonnet)',
-        description: 'Balance of intelligence and speed.',
-      },
-      'sonnet3-5': {
-        label: 'Claude 3.5 (Sonnet) v1',
-        description:
-          'An earlier version of Claude 3.5. Supports a wide range of tasks, but v2 offers improved accuracy.',
-      },
-      'sonnet3-5-v2': {
-        label: 'Claude 3.5 (Sonnet) v2',
-        description:
-          'The latest version of Claude 3.5. An enhanced model that builds on v1 with higher accuracy and performance.',
-      },
-      'haiku3-5': {
-        label: 'Claude 3.5 (Haiku)',
-        description:
-          'The latest version, offering even faster responsiveness and improved capabilities over Haiku 3.',
-      },
-      opus3: {
-        label: 'Claude 3 (Opus)',
-        description: 'Powerful model for highly complex tasks.',
-      },
-      mistral7b: {
-        label: 'Mistral 7B',
-      },
-      mistral8x7b: {
-        label: 'Mixtral-8x7B',
-      },
-      mistralLarge: {
-        label: 'Mistral Large',
-      },
     },
     agent: {
       label: 'Agent',
@@ -120,7 +81,6 @@ const translation = {
         noBots: 'No Bots.',
         noBotsRecentlyUsed: 'No Recently Used Shared Bots.',
         retrievingKnowledge: '[Retrieving Knowledge...]',
-        selectParsingModel: 'Select Parsing Model',
         dndFileUpload:
           'You can upload files by drag and drop.\nSupported files: {{fileExtensions}}',
         uploadError: 'Error Message',
@@ -157,9 +117,9 @@ const translation = {
         knowledge: {
           overview:
             'By providing external knowledge to the bot, it becomes able to handle data that it has not been pre-trained on.',
-          url: 'The information from the specified URL will be used as Knowledge.',
+          url: 'The information from the specified URL will be used as Knowledge. If you set the URL of a YouTube video, the transcript of that video will be used as Knowledge.',
           s3url:
-            'By entering the S3 URI, you can add S3 as a data source. You can add up to 4 sources. It only supports buckets that exist in the same account and the same region as bedrock region.',
+            'By entering the S3 URI, you can add S3 as a data source. You can add up to 4 sources. It only supports buckets that exist in the same account and the same region as the deployment destination.',
           sitemap:
             'By specifying the URL of the sitemap, the information obtained through automatically scraping websites within it will be used as Knowledge.',
           file: 'The uploaded files will be used as Knowledge.',
@@ -496,16 +456,6 @@ How would you categorize this email?`,
           "When the chunk size is too small, contextual information can be lost, and when it's too large, different contextual information may exist within the same chunk, potentially reducing search accuracy.",
         chunkOverlap:
           'By specifying chunk overlap, you can preserve contextual information around chunk boundaries. Increasing the chunk size can sometimes improve search accuracy. However, be aware that increasing the chunk overlap can lead to higher computational costs.',
-        overlapTokens:
-          'You configure the number of tokens to overlap, or repeat across adjacent chunks. For example, if you set overlap tokens to 60, the last 60 tokens in the first chunk are also included at the beginning of the second chunk.',
-        maxParentTokenSize:
-          'You are able to define the parent chunk size. During retrieval, the system initially retrieves child chunks, but replaces them with broader parent chunks so as to provide the model with more comprehensive context',
-        maxChildTokenSize:
-          'You are able to define the child chunk size. During retrieval, the system initially retrieves child chunks, but replaces them with broader parent chunks so as to provide the model with more comprehensive context',
-        bufferSize:
-          'This parameter can influence how much text is examined together to determine the boundaries of each chunk, impacting the granularity and coherence of the resulting chunks. A larger buffer size might capture more context but can also introduce noise, while a smaller buffer size might miss important context but ensures more precise chunking.',
-        breakpointPercentileThreshold:
-          'A higher threshold requires sentences to be more distinguishable in order to be split into different chunks. A higher threshold results in fewer chunks and typically larger average chunk size.',
       },
       alert: {
         sync: {
@@ -587,14 +537,6 @@ How would you categorize this email?`,
           label: 'Fixed-size chunking',
           hint: 'Splits text into your set approximate token size.',
         },
-        hierarchical: {
-          label: 'hierarchical chunking',
-          hint: 'Splits text into nested structures of child and parent chunks.',
-        },
-        semantic: {
-          label: 'semantic chunking',
-          hint: 'Splits text into meaningful chunks to enhance understanding and information retrieval.',
-        },
         none: {
           label: 'No chunking',
           hint: 'Documents will not be split.',
@@ -607,26 +549,6 @@ How would you categorize this email?`,
       chunkingOverlapPercentage: {
         label: 'Overlap Percentage between Chunks',
         hint: 'Parent chunk overlap depends on the child token size and child percentage overlap you specify.',
-      },
-      overlapTokens: {
-        label: 'Overlap Tokens',
-        hint: 'The number of tokens to repeat across chunks in the same layer',
-      },
-      maxParentTokenSize: {
-        label: 'Max Parent Token Size',
-        hint: 'The maximum number of tokens that a chunk can contain in Parent layer',
-      },
-      maxChildTokenSize: {
-        label: 'Max Child Token Size',
-        hint: 'The maximum number of tokens that a chunk can contain in Child layer',
-      },
-      bufferSize: {
-        label: 'Buffer Size',
-        hint: 'the number of surrounding sentences to be added for embeddings creation. A buffer size of 1 results in 3 sentences (current, previous and next sentence) to be combined and embedded',
-      },
-      breakpointPercentileThreshold: {
-        label: 'Breakpoint percentile threshold',
-        hint: 'The percentile threshold of sentence distance/dissimilarity to draw breakpoints between sentences.',
       },
       opensearchAnalyzer: {
         label: 'Analyzer (Tokenization, Normalization)',
@@ -648,52 +570,6 @@ How would you categorize this email?`,
         token_filter: 'Token Filter:',
         not_specified: 'Not specified',
       },
-      advancedParsing: {
-        label: 'Advanced Parsing',
-        description: 'Select a model to use for advanced document parsing capabilities.',
-        hint: 'Suitable for parsing more than standard text in supported document formats, including tables within PDFs with their structure intact. Additional costs are incurred for parsing using generative AI.'
-      },
-      parsingModel: {
-        label: 'Advanced Parsing Model',
-        none: {
-          label: 'Disabled',
-          hint: 'No advanced parsing will be applied.',
-        },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Use Claude 3 Sonnet v1 for advanced document parsing.',
-        },
-        claude_3_haiku_v1: {
-          label: 'Claude 3 Haiku v1',
-          hint: 'Use Claude 3 Haiku v1 for advanced document parsing.',
-        }
-      },
-      webCrawlerConfig: {
-        title: 'Web Crawler Config',
-        crawlingScope: {
-          label: 'Crawling Scope',
-          default: {
-            label: 'Default',
-            hint: 'Limit crawling to web pages that belong to the same host and with the same initial URL path. For example, with a seed URL of "https://aws.amazon.com/bedrock/" then only this path and web pages that extend from this path will be crawled, like "https://aws.amazon.com/bedrock/agents/". Sibling URLs like "https://aws.amazon.com/ec2/" are not crawled, for example.',
-          },
-          subdomains: {
-            label: 'Subdomains',
-            hint: 'Include crawling of any web page that has the same primary domain as the seed URL. For example, with a seed URL of "https://aws.amazon.com/bedrock/" then any web page that contains "amazon.com" will be crawled, like "https://www.amazon.com".',
-          },
-          hostOnly: {
-            label: 'Host Only',
-            hint: 'Limit crawling to web pages that belong to the same host. For example, with a seed URL of "https://aws.amazon.com/bedrock/", then web pages with "https://docs.aws.amazon.com" will also be crawled, like "https://aws.amazon.com/ec2".',
-          },
-        },
-        includePatterns: {
-          label: 'Include Patterns',
-          hint: 'Specify patterns to include in web crawling. Only URLs matching these patterns will be crawled.',
-        },
-        excludePatterns: {
-          label: 'Exclude Patterns',
-          hint: 'Specify patterns to exclude from web crawling. URLs matching these patterns will not be crawled.',
-        },
-      }
     },
     error: {
       answerResponse: 'An error occurred while responding.',
@@ -730,9 +606,6 @@ How would you categorize this email?`,
       chunkOverlapLessThanChunkSize: {
         message: 'Chunk overlap must be set to less than Chunk size',
       },
-      parentTokenRange: {
-        message: 'Parent token size should be larger than child token size',
-      },
       quickStarter: {
         message: 'Please input both Title and Conversation Example.',
       },
@@ -747,68 +620,71 @@ How would you categorize this email?`,
       },
     },
     guardrails: {
-      title: 'Guardrails',
-      label: 'Enable Guardrails for Amazon Bedrock',
-      hint: 'Guardrails for Amazon Bedrock are used to implement application-specific safeguards based on your use cases and responsible AI policies.',
+      title: "Guardrails",
+      label: "Enable Guardrails for Amazon Bedrock",
+      hint: "Guardrails for Amazon Bedrock are used to implement application-specific safeguards based on your use cases and responsible AI policies.",
       harmfulCategories: {
-        label: 'Harmful Categories',
-        hint: 'Configure content filters by adjusting the degree of filtering to detect and block harmful user inputs and model responses that violate your usage policies. 0: disable, 1: low, 2: middle, 3: High',
+        label: "Harmful Categories",
+        hint: "Configure content filters by adjusting the degree of filtering to detect and block harmful user inputs and model responses that violate your usage policies. 0: disable, 1: low, 2: middle, 3: High",
         hate: {
-          label: 'Hate',
-          hint: 'Describes input prompts and model responses that discriminate, criticize, insult, denounce, or dehumanize a person or group on the basis of an identity (such as race, ethnicity, gender, religion, sexual orientation, ability, and national origin). 0: disable, 1: low, 2: middle, 3: High',
+          label: "Hate",
+          hint: "Describes input prompts and model responses that discriminate, criticize, insult, denounce, or dehumanize a person or group on the basis of an identity (such as race, ethnicity, gender, religion, sexual orientation, ability, and national origin). 0: disable, 1: low, 2: middle, 3: High",
         },
         insults: {
-          label: 'Insults',
-          hint: 'Describes input prompts and model responses that includes demeaning, humiliating, mocking, insulting, or belittling language. This type of language is also labeled as bullying. 0: disable, 1: low, 2: middle, 3: High',
+          label: "Insults",
+          hint: "Describes input prompts and model responses that includes demeaning, humiliating, mocking, insulting, or belittling language. This type of language is also labeled as bullying. 0: disable, 1: low, 2: middle, 3: High"
         },
         sexual: {
-          label: 'Sexual',
-          hint: 'Describes input prompts and model responses that indicates sexual interest, activity, or arousal using direct or indirect references to body parts, physical traits, or sex. 0: disable, 1: low, 2: middle, 3: High',
+          label: "Sexual",
+          hint: "Describes input prompts and model responses that indicates sexual interest, activity, or arousal using direct or indirect references to body parts, physical traits, or sex. 0: disable, 1: low, 2: middle, 3: High"
         },
         violence: {
-          label: 'Violence',
-          hint: 'Describes input prompts and model responses that includes glorification of or threats to inflict physical pain, hurt, or injury toward a person, group or thing. 0: disable, 1: low, 2: middle, 3: High ',
+          label: "Violence",
+          hint: "Describes input prompts and model responses that includes glorification of or threats to inflict physical pain, hurt, or injury toward a person, group or thing. 0: disable, 1: low, 2: middle, 3: High "
         },
         misconduct: {
-          label: 'Misconduct',
-          hint: 'Describes input prompts and model responses that seeks or provides information about engaging in misconduct activity, or harming, defrauding, or taking advantage of a person, group or institution. 0: disable, 1: low, 2: middle, 3: High',
-        },
+          label: "Misconduct",
+          hint: "Describes input prompts and model responses that seeks or provides information about engaging in misconduct activity, or harming, defrauding, or taking advantage of a person, group or institution. 0: disable, 1: low, 2: middle, 3: High"
+        }
       },
       promptAttacks: {
-        hint: 'Describes user prompts intended to bypass the safety and moderation capabilities of a foundation model in order to generate harmful content (also known as jailbreak), and ignore and override instructions specified by the developer (referred to as prompt injection). Please refer to Prompt Attack for more details to use it with input tagging.',
+        hint: "Describes user prompts intended to bypass the safety and moderation capabilities of a foundation model in order to generate harmful content (also known as jailbreak), and ignore and override instructions specified by the developer (referred to as prompt injection). Please refer to Prompt Attack for more details to use it with input tagging."
       },
-      deniedTopics: {
-        hint: 'Add up to 30 denied topics to block user inputs or model responses associated with the topic.',
+      deniedTopics : {
+        hint: "Add up to 30 denied topics to block user inputs or model responses associated with the topic."
       },
       wordFilters: {
-        hint: 'Use these filters to block certain words and phrases in user inputs and model responses.',
+        hint: "Use these filters to block certain words and phrases in user inputs and model responses.",
         profanityFilter: {
-          hint: 'Enable this feature to block profane words in user inputs and model responses. The list of words is based on the global definition of profanity and is subject to change.',
+          hint: "Enable this feature to block profane words in user inputs and model responses. The list of words is based on the global definition of profanity and is subject to change."
         },
         customWordsAndPhrases: {
-          hint: 'Specify up to 10,000 words or phrases (max 3 words) to be blocked by the guardrail. A blocked message will show if user input or model responses contain these words or phrases.',
-        },
+          hint: "Specify up to 10,000 words or phrases (max 3 words) to be blocked by the guardrail. A blocked message will show if user input or model responses contain these words or phrases."
+        }
       },
       sensitiveInformationFilters: {
-        hint: 'Use these filters to handle any data related to privacy.',
+        hint: "Use these filters to handle any data related to privacy.",
         personallyIdentifiableInformationTypes: {
-          PIITypes: {},
-          regexPatterns: {},
-        },
+          PIITypes: {
+          },
+          regexPatterns: {
+          }
+        }
       },
       contextualGroundingCheck: {
-        label: 'Contextual Grounding Check',
-        hint: 'Use this policy to validate if model responses are grounded in the reference source and relevant to user’s query to filter model hallucination.',
+        label: "Contextual Grounding Check",
+        hint: "Use this policy to validate if model responses are grounded in the reference source and relevant to user’s query to filter model hallucination.",
         groundingThreshold: {
-          label: 'Grounding',
-          hint: 'Validate if the model responses are grounded and factually correct based on the information provided in the reference source, and block responses that are below the defined threshold of grounding. 0: blocks nothing, 0.99: blocks almost everything',
+          label: "Grounding",
+          hint: "Validate if the model responses are grounded and factually correct based on the information provided in the reference source, and block responses that are below the defined threshold of grounding. 0: blocks nothing, 0.99: blocks almost everything"
         },
         relevanceThreshold: {
-          label: 'Relevance',
-          hint: "Validate if the model responses are relevant to the user's query and block responses that are below the defined threshold of relevance. 0: blocks nothing, 0.99: blocks almost everything",
-        },
-      },
-    },
+          label: "Relevance",
+          hint: "Validate if the model responses are relevant to the user's query and block responses that are below the defined threshold of relevance. 0: blocks nothing, 0.99: blocks almost everything"
+        }
+      }
+      
+    }
   },
 };
 

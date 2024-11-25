@@ -77,6 +77,9 @@ const ChatPage: React.FC = () => {
     giveFeedback,
   } = useChat();
 
+  // Disallow editing of bots created under opposite VITE_APP_ENABLE_KB environment state
+  const KB_ENABLED: boolean = import.meta.env.VITE_APP_ENABLE_KB === 'true';
+
   // Error Handling
   useEffect(() => {
     if (conversationError) {
@@ -117,7 +120,12 @@ const ChatPage: React.FC = () => {
     setIsAvailabilityBot(false);
     if (bot) {
       setIsAvailabilityBot(true);
-      setPageTitle(bot.title);
+      // Add "Unsupported" prefix for bots created under opposite VITE_APP_ENABLE_KB environment state
+      setPageTitle(
+        !bot.owned || bot.ownedAndHasBedrockKnowledgeBase === KB_ENABLED
+          ? bot.title
+          : `[${t('bot.label.unsupported')}] ${bot.title}`
+      );
     } else {
       setPageTitle(t('bot.label.normalChat'));
     }
@@ -126,7 +134,7 @@ const ChatPage: React.FC = () => {
         setPageTitle(t('bot.label.notAvailableBot'));
       }
     }
-  }, [bot, botError, t]);
+  }, [KB_ENABLED, bot, botError, t]);
 
   const description = useMemo<string>(() => {
     if (!bot) {
@@ -396,10 +404,19 @@ const ChatPage: React.FC = () => {
                   </ButtonIcon>
                   <ButtonPopover className="mx-1" target="bottom-right">
                     {bot?.owned && (
+                      // Disable the edit action for bots created under opposite VITE_APP_ENABLE_KB environment state
                       <PopoverItem
                         onClick={() => {
-                          onClickBotEdit(bot.id);
-                        }}>
+                          if (
+                            bot.ownedAndHasBedrockKnowledgeBase === KB_ENABLED
+                          ) {
+                            onClickBotEdit(bot.id);
+                          }
+                        }}
+                        className={`${
+                          bot.ownedAndHasBedrockKnowledgeBase !== KB_ENABLED &&
+                          'opacity-30 hover:filter-none'
+                        }`}>
                         <PiPencilLine />
                         {t('bot.titleSubmenu.edit')}
                       </PopoverItem>

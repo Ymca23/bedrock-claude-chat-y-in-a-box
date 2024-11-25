@@ -27,6 +27,12 @@ export type ConversationQuickStarter = {
   example: string;
 };
 
+export type EmdeddingParams = {
+  chunkSize: number;
+  chunkOverlap: number;
+  enablePartitionPdf: boolean;
+};
+
 export type BotKnowledgeDiff = {
   sourceUrls: string[];
   // Sitemap cannot be used yet.
@@ -41,6 +47,7 @@ export type BotSyncStatus = 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
 
 export type BotListItem = BotMeta & {
   available: boolean;
+  hasBedrockKnowledgeBase: boolean;
 };
 
 export type GenerationParams = {
@@ -49,6 +56,10 @@ export type GenerationParams = {
   topP: number;
   temperature: number;
   stopSequences: string[];
+};
+
+export type SearchParams = {
+  maxResults: number;
 };
 
 export type GuardrailsParams = {
@@ -60,25 +71,28 @@ export type GuardrailsParams = {
   misconductThreshold: number;
   groundingThreshold: number;
   relevanceThreshold: number;
-  guardrailArn: string;
-  guardrailVersion: string;
+  guardrailArn: string
+  guardrailVersion: string
 };
 
 export type BotDetails = BotMeta & {
   instruction: string;
+  embeddingParams: EmdeddingParams;
   generationParams: GenerationParams;
+  searchParams: SearchParams;
   agent: Agent;
   knowledge: BotKnowledge;
   syncStatusReason: string;
   displayRetrievedChunks: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
   bedrockGuardrails: GuardrailsParams;
-  bedrockKnowledgeBase: BedrockKnowledgeBase;
+  bedrockKnowledgeBase: BedrockKnowledgeBase | null;
 };
 
 export type BotSummary = BotMeta & {
   hasKnowledge: boolean;
   hasAgent: boolean;
+  ownedAndHasBedrockKnowledgeBase: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
 };
 
@@ -95,7 +109,9 @@ export type RegisterBotRequest = {
   instruction: string;
   agent: AgentInput;
   description?: string;
+  embeddingParams?: EmdeddingParams | null;
   generationParams?: GenerationParams;
+  searchParams?: SearchParams;
   knowledge?: BotKnowledge;
   displayRetrievedChunks: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
@@ -110,7 +126,9 @@ export type UpdateBotRequest = {
   instruction: string;
   description?: string;
   agent: AgentInput;
+  embeddingParams?: EmdeddingParams | null;
   generationParams?: BotGenerationConfig;
+  searchParams?: SearchParams;
   knowledge?: BotKnowledgeDiff;
   displayRetrievedChunks: boolean;
   conversationQuickStarters: ConversationQuickStarter[];
@@ -123,7 +141,9 @@ export type UpdateBotResponse = {
   title: string;
   instruction: string;
   description: string;
+  embeddingParams: EmdeddingParams;
   generationParams: GenerationParams;
+  searchParams: SearchParams;
   knowledge?: BotKnowledge;
   displayRetrievedChunks: boolean;
   conversationQuickStarters: ConversationQuickStarter[];

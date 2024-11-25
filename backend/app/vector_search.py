@@ -3,9 +3,10 @@ import logging
 import re
 from typing import Any, Literal
 
+from app.bedrock import calculate_query_embedding
 from app.repositories.custom_bot import find_public_bot_by_id
 from app.repositories.models.custom_bot import BotModel
-from app.utils import generate_presigned_url, get_bedrock_agent_client
+from app.utils import generate_presigned_url, get_bedrock_agent_client, query_postgres
 from botocore.exceptions import ClientError
 from pydantic import BaseModel
 
@@ -71,9 +72,44 @@ def get_source_link(source: str) -> tuple[Literal["s3", "url"], str]:
             client_method="get_object",
         )
         return "s3", source_link
-    else:
-        # Return the source as is for knowledge base references
+    elif source.startswith("http://") or source.startswith("https://"):
         return "url", source
+    else:
+        # Assume source is a youtube video id
+        return "url", f"https://www.youtube.com/watch?v={source}"
+
+
+def _pgvector_search(bot_id: str, limit: int, query: str) -> list[SearchResult]:
+    """Search to fetch top n most related documents from pgvector.
+    Args:
+        bot_id (str): bot id
+        limit (int): number of results to return
+        query (str): query string
+    Returns:
+        list[SearchResult]: list of search results
+    """
+    query_embedding = calculate_query_embedding(query)
+    logger.info(f"query_embedding: {query_embedding}")
+
+    search_query = """
+SELECT id, botid, content, source, embedding 
+FROM items 
+WHERE botid = %s 
+ORDER BY embedding <-> %s 
+LIMIT %s
+"""
+
+    results = query_postgres(search_query, (bot_id, json.dumps(query_embedding), limit))
+    # NOTE: results should be:
+    # [
+    #     ('123', 'bot_1', 'content_1', 'source_1', [0.123, 0.456, 0.789]),
+    #     ('124', 'bot_1', 'content_2', 'source_2', [0.234, 0.567, 0.890]),
+    #     ...
+    # ]
+    return [
+        SearchResult(rank=i, bot_id=r[1], content=r[2], source=r[3])
+        for i, r in enumerate(results)
+    ]
 
 
 def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResult]:
@@ -100,21 +136,14 @@ def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResu
             },
         )
 
-        def extract_source_from_retrieval_result(retrieval_result):
-            """Extract source URL/URI from retrieval result based on location type."""
-            location = retrieval_result.get("location", {})
-            location_type = location.get("type")
-
-            if location_type == "WEB":
-                return location.get("webLocation", {}).get("url", "")
-            elif location_type == "S3":
-                return location.get("s3Location", {}).get("uri", "")
-            return ""
-
         search_results = []
         for i, retrieval_result in enumerate(response.get("retrievalResults", [])):
             content = retrieval_result.get("content", {}).get("text", "")
-            source = extract_source_from_retrieval_result(retrieval_result)
+            source = (
+                retrieval_result.get("location", {})
+                .get("s3Location", {})
+                .get("uri", "")
+            )
 
             search_results.append(
                 SearchResult(rank=i, bot_id=bot.id, content=content, source=source)
@@ -128,4 +157,8 @@ def _bedrock_knowledge_base_search(bot: BotModel, query: str) -> list[SearchResu
 
 
 def search_related_docs(bot: BotModel, query: str) -> list[SearchResult]:
-    return _bedrock_knowledge_base_search(bot, query)
+    if bot.has_bedrock_knowledge_base():
+        logger.info("Searching related documents using Bedrock Knowledge Base.")
+        return _bedrock_knowledge_base_search(bot, query)
+    logger.info("Searching related documents using pgvector.")
+    return _pgvector_search(bot.id, bot.search_params.max_results, query)

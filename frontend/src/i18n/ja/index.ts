@@ -18,44 +18,6 @@ const translation = {
       chatWaitingSymbol: '▍',
       adminConsoles: '管理者用',
     },
-    model: {
-      haiku3: {
-        label: 'Claude 3 (Haiku)',
-        description:
-          '旧バージョンで、スピードとコンパクトさを最適化しており、ほぼ瞬時の応答を提供',
-      },
-      sonnet3: {
-        label: 'Claude 3 (Sonnet)',
-        description: '賢さとスピードのバランスが取れたモデル',
-      },
-      'sonnet3-5': {
-        label: 'Claude 3.5 (Sonnet) v1',
-        description:
-          'Claude 3.5の初期バージョン。幅広いタスクに対応しますが、v2の方が精度が向上',
-      },
-      'sonnet3-5-v2': {
-        label: 'Claude 3.5 (Sonnet) v2',
-        description:
-          'Claude 3.5の最新バージョン。v1をさらに強化し、より高い精度とパフォーマンスを提供',
-      },
-      'haiku3-5': {
-        label: 'Claude 3.5 (Haiku)',
-        description: 'Haiku最新バージョン。精度を保ち、高速な応答を実現',
-      },
-      opus3: {
-        label: 'Claude 3 (Opus)',
-        description: '非常に複雑なタスクに対応するパワフルなモデル',
-      },
-      mistral7b: {
-        label: 'Mistral 7B',
-      },
-      mistral8x7b: {
-        label: 'Mixtral-8x7B',
-      },
-      mistralLarge: {
-        label: 'Mistral Large',
-      },
-    },
     agent: {
       label: 'エージェント',
       help: {
@@ -158,9 +120,9 @@ const translation = {
         knowledge: {
           overview:
             '外部の情報をボットに提供することで、事前学習していないデータを扱えるようになります。',
-          url: 'URLを指定すると、そのURLの情報がナレッジとして利用されます。',
+          url: 'URLを指定すると、そのURLの情報がナレッジとして利用されます。YouTube の動画の URL を設定すると、その動画の字幕がナレッジとして利用されます。',
           s3url:
-            'S3 の URI を入力し、S3 をデータソースとして追加します。最大 4 件追加できます。Bedrock利用リージョンと同じアカウント・同じリージョンに存在するバケットのみ対応しています。',
+            'S3 の URI を入力し、S3 をデータソースとして追加します。最大 4 件追加できます。デプロイ先と同じアカウント・同じリージョンに存在するバケットのみ対応しています。',
           sitemap:
             'サイトマップのURLを指定すると、そのサイトマップ内のサイトを自動的にスクレイピングして得られた情報がナレッジとして利用されます。',
           file: 'アップロードしたファイルがナレッジとして利用されます。',
@@ -498,16 +460,6 @@ const translation = {
           'チャンクサイズが小さすぎると文脈情報が失われ、大きすぎると同一チャンクの中に異なる文脈の情報が存在することになり、検索精度が低下する場合があります。',
         chunkOverlap:
           'チャンクオーバーラップを指定することで、チャンク境界付近の文脈情報を保持することができます。チャンクサイズを大きくすることで、検索精度の向上ができる場合があります。しかし、チャンクオーバーラップを大きくすると、計算コストが増大するのでご注意ください。',
-        overlapTokens:
-          '重複するトークンの数、または隣接するチャンク間で繰り返すトークンの数を構成します。たとえば、オーバーラップ トークンを 60 に設定すると、最初のチャンクの最後の 60 個のトークンも 2 番目のチャンクの先頭に含まれます。',
-        maxParentTokenSize:
-          '親チャンクサイズを定義できます。取得中、システムは最初に子チャンクを取得しますが、より包括的なコンテキストをモデルに提供するために、それらをより広範な親チャンクに置き換えます',
-        maxChildTokenSize:
-          '子チャンクサイズを定義できます。取得中、システムは最初に子チャンクを取得しますが、より包括的なコンテキストをモデルに提供するために、それらをより広範な親チャンクに置き換えます',
-        bufferSize:
-          'このパラメータは、各チャンクの境界を決定するために一緒に検査されるテキストの量に影響を与え、結果として生じるチャンクの粒度と一貫性に影響を与える可能性があります。バッファサイズを大きくすると、より多くのコンテキストをキャプチャできますが、ノイズも発生する可能性があります。バッファサイズを小さくすると、重要なコンテキストを見逃す可能性がありますが、より正確なチャンクが保証されます。',
-        breakpointPercentileThreshold:
-          'しきい値が高いほど、文を異なるチャンクに分割するために、文をより区別できる必要があります。しきい値が高いほどチャンクが少なくなり、通常は平均チャンクサイズが大きくなります。',
       },
       alert: {
         sync: {
@@ -583,14 +535,6 @@ const translation = {
           label: '固定サイズのチャンキング',
           hint: 'テキストをほぼ固定サイズのチャンクに分割します。',
         },
-        hierarchical: {
-          label: '階層チャンキング',
-          hint: 'テキストを子チャンクと親チャンクのネストされた構造に分割します。',
-        },
-        semantic: {
-          label: 'セマンティックチャンキング',
-          hint: 'テキストを意味のあるチャンクに分割します。',
-        },
         none: {
           label: 'チャンキングなし',
           hint: 'ドキュメントを分割しません。',
@@ -603,26 +547,6 @@ const translation = {
       chunkingOverlapPercentage: {
         label: 'チャンク間のオーバーラップの割合',
         hint: 'チャンク間でオーバーラップするトークンのおおよその割合を設定します。',
-      },
-      overlapTokens: {
-        label: 'チャンク間のオーバラップトークン数',
-        hint: '同じレイヤー内のチャンク間でオーバラップするトークンの数',
-      },
-      maxParentTokenSize: {
-        label: '親トークンの最大サイズ',
-        hint: 'チャンクが親レイヤーに含めることができるトークンの最大数',
-      },
-      maxChildTokenSize: {
-        label: '子トークンの最大サイズ',
-        hint: 'チャンクが子レイヤーに含めることができるトークンの最大数',
-      },
-      bufferSize: {
-        label: 'バッファサイズ',
-        hint: '埋め込み作成に追加される周囲の文の数を定義します。バッファサイズが 1 の場合、3つの文 (現在、前、次の文) が結合されて埋め込まれます。',
-      },
-      breakpointPercentileThreshold: {
-        label: 'ブレークポイントパーセンタイルしきい値',
-        hint: '文間にブレークポイントを描画するための文の距離/類似性のパーセンタイルしきい値を設定します。',
       },
       opensearchAnalyzer: {
         label: 'アナライザー（トークナイズ・正規化）',
@@ -644,52 +568,6 @@ const translation = {
         token_filter: 'トークンフィルター:',
         not_specified: '指定なし',
       },
-      advancedParsing: {
-        label: '高度なドキュメント解析機能',
-        description: 'ドキュメントの高度なドキュメント解析機能に使用するモデルを選択してください。',
-        hint: '構造が損なわれていないPDF内の表など、サポートされている文書形式の標準テキスト以外の解析に適しています。生成AIを使用した解析のために追加のコストが発生します。'
-      },
-      parsingModel: {
-        label: '高度なパースモデル',
-        none: {
-          label: 'なし',
-          hint: 'ドキュメントの高度な解析機能は適用されません。',
-        },
-        claude_3_sonnet_v1: {
-          label: 'Claude 3 Sonnet v1',
-          hint: 'Claude 3 Sonnet v1を使用してドキュメントの高度な解析を行います。',
-        },
-        claude_3_haiku_v1: {
-          label: 'Claude 3 Haiku v1',
-          hint: 'Claude 3 Haiku v1を使用してドキュメントの高度な解析を行います。',
-        }
-      },
-      webCrawlerConfig: {
-        title: 'Webクローラーの設定',
-        crawlingScope: {
-          label: 'スコープ',
-          default:{
-            label: 'デフォルト',
-            hint: 'クロールを、同じホストに属し、同じ初期URLパスを持つウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、このパスとこのパスから派生するウェブページのみがクロールされます。例えば "https://aws.amazon.com/bedrock/agents/" などです。"https://aws.amazon.com/ec2/" のような兄弟URLはクロールされません。'
-          },
-          subdomains: {
-            label: 'サブドメイン',
-            hint: 'シードURLと同じプライマリドメインを持つすべてのウェブページのクロールを含めます。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"amazon.com" を含むすべてのウェブページがクロールされます。"https://www.amazon.com" のようなページも含まれます。'
-          },
-          hostOnly: {
-            label: 'ホストオンリー',
-            hint: 'クロールを同じホストに属するウェブページに制限します。例えば、シードURLが "https://aws.amazon.com/bedrock/" の場合、"https://docs.aws.amazon.com" のようなウェブページもクロールされます。"https://aws.amazon.com/ec2" のようなページも含まれます。'
-          }
-        },
-        includePatterns: {
-          label: 'ウェブクロールに含めるパターン',
-          hint: 'ウェブクロールに含めるパターンを指定します。これらのパターンに一致するURLのみがクロールされます。',
-        },
-        excludePatterns: {
-          label: 'ウェブクロールに含めないパターン',
-          hint: 'ウェブクロールから除外するパターンを指定します。これらのパターンに一致するURLはクロールされません。',
-        },
-      }
     },
     error: {
       answerResponse: '回答中にエラーが発生しました。',
@@ -724,10 +602,6 @@ const translation = {
       chunkOverlapLessThanChunkSize: {
         message:
           'チャンクオーバーラップはチャンクサイズより小さく設定する必要があります',
-      },
-      parentTokenRange: {
-        message:
-          '親トークンのサイズは子トークンのサイズより大きくする必要があります',
       },
       quickStarter: {
         message: 'タイトルと入力例は、どちらも入力してください。',
